@@ -1,0 +1,59 @@
+version: "3.8"
+services:
+  mongodb:
+    # customise container name
+    # container_name: mongodb
+    image: 'mongo'
+    volumes:
+      - mongodb_data:/data/db
+    # environment:
+    #   MONGO_INITDB_ROOT_USERNAME: mongoadmin
+    #   MONGO_INITDB_ROOT_PASSWORD: password
+    env_file:
+      - ./env/mongo.env
+    # networks is optional
+    # networks:
+    #   - networkName
+    # specify port forewarding
+    ports:
+      - '27017:27017'
+  backend:
+    # build: ./backend, use dockerfile key if you use different name for Dockerfile. E.g. Dockerfile-dev
+    # context: ./backend
+    # dockerfile: Dockerfile-dev
+
+    # customise container name
+    # container_name: goals_backend_app
+    build: ./backend
+    ports:
+      - '80:80'
+      # expose multiple ports here
+    volumes:
+      # named vol
+      - logs:/app/logs
+      # bind mount
+      - ./backend:/app
+      # anonymous vol
+      - /app/node_modules
+    env_file:
+      - ./env/backend.env
+    depends_on:
+      - mongodb
+  frontend:
+    # customise container name
+    # container_name: goals_frontend_app
+    build: ./frontend
+    ports:
+      - '3000:3000'
+    volumes:
+      # bind mount
+      - ./frontend/src:/app/src
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+volumes:
+  # only named volumes need to list here
+  mongodb_data:
+  logs:
+
